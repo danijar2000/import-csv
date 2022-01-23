@@ -72,34 +72,31 @@ class Import extends Command
                 fputcsv($result_fp, array_merge($line, ['error']));
                 continue;
             }
-            if(!isset($line[1]) && !isset($line[2]) && !isset($line[3])) {
-                fputcsv($result_fp, array_merge($line, ['Not have are no required columns']));
-                continue;
-            }
 
-            if(preg_match('/([a-z]+)\s+([a-z]+)/i', $line[1], $matches)
+            if(isset($line[1])
+                && preg_match('/([a-z]+)\s+([a-z]+)/i', $line[1], $matches)
                 && isset($matches[1])
                 && isset($matches[2])) {
                 $name = $matches[1];
                 $surname = $matches[2];
             } else {
-                fputcsv($result_fp, array_merge($line, ['Not have are name or surname']));
+                fputcsv($result_fp, array_merge($line, ['name']));
                 continue;
             }
 
-            $email = $line[2];
-            if(!filter_var($email, FILTER_VALIDATE_EMAIL)){
-                fputcsv($result_fp, array_merge($line, ['Email not valid']));
+            if(isset($line[2]) && filter_var($line[2], FILTER_VALIDATE_EMAIL)) {
+                $email = $line[2];
+            } else {
+                fputcsv($result_fp, array_merge($line, ['email']));
                 continue;
             }
 
-            $age = (int)$line[3];
-            if(!(preg_match('/(\d+)/', $line[3], $matches)
-                && isset($matches[1])
-                && ($age = (int)$matches[1])
-                && $age >= 18
-                && $age <= 99)) {
-                fputcsv($result_fp, array_merge($line, ['Age not valid']));
+            if(!isset($line[3]) || !(preg_match('/(\d+)/', $line[3], $matches)
+                    && isset($matches[1])
+                    && ($age = (int)$matches[1])
+                    && $age >= 18
+                    && $age <= 99)) {
+                fputcsv($result_fp, array_merge($line, ['age']));
                 continue;
             }
 
@@ -116,7 +113,7 @@ class Import extends Command
                     'country_code' => $country_code,
                 ]);
             } catch (QueryException $e) {
-                fputcsv($result_fp, array_merge($line, [$e->getMessage()]));
+                //fputcsv($result_fp, array_merge($line, [$e->getMessage()]));
             }
         }
         fclose($import_fp);
